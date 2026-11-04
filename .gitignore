@@ -17,3 +17,11 @@ logs/
 server.log
 .vscode/
 .idea/
+sessions/
+local_perplex/sessions/
+.env
+.playwright-mcp/
+benchmarks/.data/
+.pytest_cache/
+.coverage
+.ruff_cache/

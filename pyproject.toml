@@ -4,10 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "local-perplex"
-version = "1.0.0"
-description = "A premium local alternative to Perplexity AI"
+version = "2.0.0"
+description = "Private, local-first AI research assistant: web search + 26 LLM providers + cited answers"
 readme = "README.md"
 requires-python = ">=3.10"
+authors = [{ name = "Harshil Gorasiya" }]
+keywords = ["llm", "rag", "ollama", "search", "research-assistant", "perplexity", "bm25", "fastapi"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Framework :: FastAPI",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "requests",
     "pyyaml",
@@ -23,8 +30,15 @@ dependencies = [
     "pypdf",
     "python-docx",
     "openpyxl",
-    "cachetools"
+    "cachetools",
+    "rich"
 ]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-cov", "httpx", "ruff"]
+
+[project.urls]
+Repository = "https://github.com/N0t-Harshil/Local-Perplex"
 
 [project.scripts]
 perplex = "local_perplex.ui.cli:main"
@@ -34,4 +48,16 @@ perplex-gui = "local_perplex.ui.web.app:main"
 include = ["local_perplex*"]
 
 [tool.setuptools.package-data]
-"local_perplex.ui.web" = ["templates/*.html", "static/*.css"]
+"local_perplex.ui.web" = ["templates/*.html", "static/*.css", "static/*.js", "static/*.svg"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501", "B008", "UP007", "B904"]

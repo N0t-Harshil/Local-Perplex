@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Local Perplex{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+  <link rel="stylesheet" href="/static/style.css?v={{ version }}">
+  <script src="/static/app.js?v={{ version }}"></script>
+</head>
+<body data-session="{{ session_id or '' }}">
+{% set icons = {
+  'search': '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/>',
+  'history': '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',
+  'vault': '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/>',
+  'graph': '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="8" r="2.5"/><circle cx="9" cy="18" r="2.5"/><path d="M8.2 7.1 15.6 7.6M7 8.3l1.4 7.3M16.4 10l-5.6 6.4"/>',
+  'settings': '<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
+  'shield': '<path d="M12 3 5 6v6c0 4.4 3 7.9 7 9 4-1.1 7-4.6 7-9V6z"/><path d="m9 12 2 2 4-4"/>',
+} %}
+<div class="shell">
+  <aside class="sidebar" id="sidebar" aria-label="Main">
+    <a class="brand" href="/"><img class="brand-mark" src="/static/logo.svg" alt="" width="28" height="28"><span class="brand-name">Local Perplex<small>your research notebook</small></span></a>
+    <a class="new-btn" href="/"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New question<kbd>/</kbd></a>
+    <nav class="nav">
+      {% for href, key, label in [('/history','history','Library'),('/vault','vault','Documents'),('/graph','graph','Knowledge graph'),('/settings','settings','Models & search'),('/privacy','shield','Privacy')] %}
+      <a href="{{ href }}" {% if page == href[1:] or (key == 'shield' and page == 'privacy') %}aria-current="page"{% endif %}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{{ icons[key]|safe }}</svg>{{ label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="side-heading">Conversations</div>
+    <div class="sessions" id="sessions"></div>
+    <div class="side-foot">
+      <a class="engine-chip" href="/settings" title="{{ status.provider_label }} · {{ current_model }}">
+        <span class="dot {% if status.llm_online %}on{% endif %}"></span>
+        <span style="min-width:0;display:grid"><b>{{ current_model }}</b><span class="muted">{{ status.provider_label }}{% if status.local %}, on this device{% endif %}</span></span>
+      </a>
+      <button class="theme-btn" type="button" onclick="LP.toggleTheme()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg><span id="theme-label">Light theme</span></button>
+    </div>
+  </aside>
+  <main class="main" id="main">{% block main %}{% endblock %}</main>
+</div>
+<div class="scrim" id="scrim" onclick="LP.toggleSidebar(false)"></div>
+  <button class="menu-btn" type="button" onclick="LP.toggleSidebar()" aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,173 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Perplex</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body data-theme="dark">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <span class="nothing-dot"></span>
-            local perplex
-        </div>
-        <nav class="sidebar-nav">
-            <a href="/" class="nav-item active">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                Search
-            </a>
-            <a href="/vault" class="nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                Vault
-            </a>
-            <a href="/graph" class="nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="18" cy="6" r="3"></circle><circle cx="12" cy="18" r="3"></circle><path d="M8.5 7.5 11 15"></path><path d="m15.5 7.5-2.5 7.5"></path><path d="M9 6h6"></path></svg>
-                GraphMap
-            </a>
-            <a href="/settings" class="nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                Settings
-            </a>
-            <div style="margin-top: 32px; padding: 0 12px; font-size: 11px; color: #444; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Recent Research</div>
-            {% if history %}
-                {% for session in history[:5] %}
-                <a href="/history/{{ loop.index0 }}" class="nav-item" style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">
-                    {{ session.question }}
-                </a>
-                {% endfor %}
-            {% else %}
-                <div style="padding: 12px; font-size: 12px; color: #333;">Your research history will appear here.</div>
-            {% endif %}
-        </nav>
-        <div style="padding: 12px; border-top: 1px solid var(--border-color);">
-            <div style="font-size: 12px; color: var(--secondary-text);">Model: <span style="color: var(--text-color);">{{ current_model }}</span></div>
-            <div style="font-size: 12px; color: var(--secondary-text); margin-top: 6px;">Graph: <span style="color: var(--text-color);">{{ graph_stats.nodes if graph_stats else 0 }}</span> nodes</div>
-        </div>
-    </aside>
+{% extends "base.html" %}
+{% from "_composer.html" import composer %}
+{% block title %}Local Perplex{% endblock %}
+{% block main %}
+<section class="home">
+  <div class="home-inner">
+    <h1 class="home-title">What do you want to find out?</h1>
+    {{ composer(placeholder="Ask a question, paste a claim to check, or describe what to research", focus_modes=focus_modes, autofocus=True) }}
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="search-container">
-            <h1 class="hero-logo">Where knowledge begins.</h1>
+    <div class="home-meta">
+      {% if status.llm_online %}
+        <span class="{% if status.local %}private{% endif %}">{% if status.local %}Answers are written on this device by {{ current_model }}{% else %}Answers are written by {{ current_model }} via {{ status.provider_label }}{% endif %}</span>
+      {% else %}
+        <span style="color:var(--danger)">{{ status.provider_label }} isn't reachable. <a href="/settings">Choose a model</a></span>
+      {% endif %}
+      <a href="/graph">{{ graph_stats.nodes }} notes in your knowledge graph</a>
+      <a href="/vault">{{ doc_count }} of your document{{ '' if doc_count == 1 else 's' }} searchable</a>
+    </div>
 
-            <form action="/ask" method="post" enctype="multipart/form-data" id="search-form">
-                <div class="search-wrapper">
-                    <div id="image-preview-container" style="display: none; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative;">
-                        <img id="image-preview" src="#" alt="Preview" style="max-height: 120px; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <button type="button" onclick="removeImage()" style="position: absolute; top: 16px; left: 130px; background: #ff4132; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px;">&times;</button>
-                    </div>
-                    <div class="search-input-row">
-                        <textarea name="question" class="search-input" placeholder="Ask anything..." rows="1" required autofocus oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
-                    </div>
-
-                    <div class="search-footer">
-                        <div class="footer-left">
-                            <label class="pill-btn" id="pro-toggle-label">
-                                <input type="checkbox" name="mode" value="pro" style="display: none;" onchange="togglePro(this)">
-                                <span style="display: flex; align-items: center; gap: 6px;">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                                    Deep Research
-                                </span>
-                            </label>
-
-                            <label class="pill-btn">
-                                <input type="file" name="image" accept="image/*" style="display: none;" onchange="handleFile(this)">
-                                <span style="display: flex; align-items: center; gap: 6px;" id="file-btn-text">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                                    Attach
-                                </span>
-                            </label>
-
-                            <select name="privacy_mode" style="background: none; border: none; color: var(--secondary-text); font-size: 12px; outline: none; cursor: pointer;">
-                                <option value="false" selected>Standard</option>
-                                <option value="true">Incognito</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="submit-btn">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="focus-row">
-                    {% for f in ["All", "Academic", "Writing", "YouTube", "Reddit", "Technical", "Computational"] %}
-                    <label class="focus-pill {% if f == 'All' %}active{% endif %}" onclick="selectFocus(this)">
-                        <input type="radio" name="focus_mode" value="{{ f }}" {% if f == 'All' %}checked{% endif %} style="display: none;">
-                        {{ f }}
-                    </label>
-                    {% endfor %}
-                </div>
-            </form>
-
-            <div id="loading" class="loading" style="margin-top: 60px;">
-                <div class="shimmer" style="width: 100%; height: 24px;"></div>
-                <div class="shimmer" style="width: 80%;"></div>
-                <div class="shimmer" style="width: 90%;"></div>
-                <p style="color: var(--secondary-text); font-size: 14px; margin-top: 16px; font-weight: 500;">Synthesizing research from local and web sources...</p>
-            </div>
-        </div>
-
-        <!-- PrivacyHUD -->
-        <div style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 24px; color: #444; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">
-            <span style="display: flex; align-items: center; gap: 6px;"><span class="nothing-dot" style="background-color: #28a745; width: 4px; height: 4px;"></span> Local processing active</span>
-            <span>No Cloud Dependency</span>
-            <span>Zero Data Leakage</span>
-        </div>
-    </main>
-
-    <script>
-        function selectFocus(el) {
-            document.querySelectorAll('.focus-pill').forEach(pill => pill.classList.remove('active'));
-            el.classList.add('active');
-            el.querySelector('input').checked = true;
-        }
-
-        function togglePro(checkbox) {
-            const label = document.getElementById('pro-toggle-label');
-            if (checkbox.checked) {
-                label.classList.add('active');
-            } else {
-                label.classList.remove('active');
-            }
-        }
-
-        function handleFile(input) {
-            const text = document.getElementById('file-btn-text');
-            const preview = document.getElementById('image-preview');
-            const previewContainer = document.getElementById('image-preview-container');
-
-            if (input.files && input.files[0]) {
-                text.innerText = "1 Image Attached";
-                text.style.color = "#ff4132";
-
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    previewContainer.style.display = 'block';
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        function removeImage() {
-            const input = document.querySelector('input[name="image"]');
-            const text = document.getElementById('file-btn-text');
-            const previewContainer = document.getElementById('image-preview-container');
-
-            input.value = "";
-            previewContainer.style.display = 'none';
-            text.innerText = "Attach";
-            text.style.color = "";
-        }
-
-        document.getElementById('search-form').onsubmit = function() {
-            document.getElementById('loading').style.display = 'block';
-            document.querySelector('.hero-logo').style.opacity = '0.3';
-            document.querySelector('.search-wrapper').style.opacity = '0.5';
-        };
-    </script>
-</body>
-</html>
+    {% if recent %}
+    <div class="recent">
+      <h2>Recently researched</h2>
+      <ol>
+        {% for s in recent %}
+        <li><a href="/history/{{ loop.index0 }}"><span class="q">{{ s.question }}</span><span class="meta">{% if s.sources %}{{ s.sources|length }} source{{ '' if s.sources|length == 1 else 's' }}{% else %}model knowledge{% endif %}</span></a></li>
+        {% endfor %}
+      </ol>
+    </div>
+    {% else %}
+    <div class="starters" aria-label="Example questions">
+      {% for q in ["How do solid-state batteries differ from lithium-ion?", "What changed in Python 3.13?", "Summarise the evidence on intermittent fasting", "Explain retrieval-augmented generation like I'm new to ML"] %}
+      <button type="button" onclick="var t=document.querySelector('.composer textarea');t.value=this.textContent;t.dispatchEvent(new Event('input'));t.focus()">{{ q }}</button>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
