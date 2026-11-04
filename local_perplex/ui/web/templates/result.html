@@ -1,251 +1,195 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ question }} - Local Perplex</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body data-theme="dark">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <span class="nothing-dot"></span>
-            local perplex
-        </div>
-        <nav class="sidebar-nav">
-            <a href="/" class="nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                New Search
-            </a>
-            <a href="/vault" class="nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                Vault
-            </a>
-            <a href="/graph" class="nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="18" cy="6" r="3"></circle><circle cx="12" cy="18" r="3"></circle><path d="M8.5 7.5 11 15"></path><path d="m15.5 7.5-2.5 7.5"></path><path d="M9 6h6"></path></svg>
-                GraphMap
-            </a>
-            <a href="/history" class="nav-item active">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                History
-            </a>
-            <a href="/settings" class="nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                Settings
-            </a>
-        </nav>
-    </aside>
+{% extends "base.html" %}
+{% from "_composer.html" import composer %}
+{% block title %}{{ title or question }} · Local Perplex{% endblock %}
 
-    <main class="main-content" style="justify-content: flex-start; align-items: stretch; overflow-x: hidden;">
-        <div style="max-width: 800px; margin: 0 auto; width: 100%;">
-            <header style="margin-bottom: 24px;">
-                <h2 style="font-size: 32px; letter-spacing: -0.04em; margin-bottom: 8px;">{{ question }}</h2>
-                <div style="display: flex; gap: 16px; align-items: center;">
-                    <a href="/export/{{ current_session_index }}" class="pill-btn" style="text-decoration: none;">Export Markdown</a>
-                    <span style="font-size: 12px; color: var(--secondary-text);">{{ focus_mode or 'All' }} Focus - {{ mode|replace('_', ' ')|title }}</span>
-                </div>
-            </header>
+{% macro rail(sources, live=False) %}
+<aside class="rail" aria-label="Sources">
+  <div class="rail-head"><span class="rail-count">{% if sources %}{{ sources|length }} sources{% elif live %}Finding sources{% else %}No web sources{% endif %}</span></div>
+  <ol class="rail-list">
+    {% for s in sources %}
+    <li><a class="src" id="{% if live %}src-{{ s.n }}{% endif %}" data-n="{{ s.n }}" href="{{ s.url }}" target="_blank" rel="noopener noreferrer" title="{{ s.snippet }}">
+      <span class="src-n">{{ s.n }}</span>
+      <span class="src-domain"><span>{{ s.domain or (s.url|domain) }}</span></span>
+      <span class="src-title">{{ s.title }}</span>
+      <span class="src-bar"><i style="width:{{ ((s.relevance or 0) * 100)|round|int }}%"></i></span>
+    </a></li>
+    {% endfor %}
+    {% if live and not sources %}<li class="skeleton"></li><li class="skeleton"></li><li class="skeleton"></li>{% endif %}
+  </ol>
+  {% if not sources and not live %}<p class="rail-empty">Answered from the model's own knowledge{% if tag != '[INCOGNITO]' %} and your notes{% endif %}.</p>{% endif %}
+</aside>
+{% endmacro %}
 
-            <!-- Research Steps / Progress -->
-            <div id="research-progress" style="margin-bottom: 24px; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.03); display: none;">
-                <div id="current-step" style="font-size: 14px; color: var(--accent-color); font-weight: 500; display: flex; align-items: center; gap: 10px;">
-                    <div class="spinner"></div>
-                    <span id="step-text">Planning research...</span>
-                </div>
-            </div>
+{% macro metrics_line(m) %}
+{% if m and m.generation %}
+<span class="metrics">
+  {% if m.timings and m.timings.research_total is defined %}<span>research <b>{{ '%.1f'|format(m.timings.research_total) }}s</b></span>{% endif %}
+  <span>first token <b>{{ '%.1f'|format(m.generation.ttft) }}s</b></span>
+  <span><b>{{ m.generation.tokens_per_sec|round|int }}</b> tokens/s</span>
+  {% if m.model %}<span>{{ m.model }}</span>{% endif %}
+</span>
+{% endif %}
+{% endmacro %}
 
-            <!-- Sources Cards (Above Answer) -->
-            <div id="sources-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                <h3 style="font-size: 18px; font-weight: 600;">Sources</h3>
-            </div>
-            <div id="sources-container" style="display: flex; overflow-x: auto; gap: 12px; padding-bottom: 16px; margin-bottom: 32px; scrollbar-width: none;">
-                {% for s in sources %}
-                <div class="glass-card source-card" style="min-width: 200px; max-width: 200px; padding: 12px; flex-shrink: 0;" id="source-{{ loop.index }}">
-                    <a href="{{ s.url }}" class="source-title" target="_blank" style="font-size: 13px; font-weight: 600; display: block; height: 3.2em; overflow: hidden; margin-bottom: 8px;">{{ s.title }}</a>
-                    <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--secondary-text);">
-                        <img src="https://www.google.com/s2/favicons?domain={{ s.url }}&sz=32" width="14" height="14" style="border-radius: 2px;">
-                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ s.url|replace('https://', '')|replace('http://', '')|split('/')|first }}</span>
-                        <span style="margin-left: auto; font-weight: 700;">{{ loop.index }}</span>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+{% block main %}
+<div class="thread" id="thread">
+  {% for h in history_list %}
+  <article class="turn earlier">
+    <h2 class="turn-q">{{ h.question }}</h2>
+    {{ rail(h.sources or []) }}
+    <div class="answer" data-md data-max="{{ (h.sources or [])|length }}"><script type="text/markdown">{{ h.answer|tojson }}</script></div>
+    <div class="answer-foot">{{ metrics_line(h.metrics) }}</div>
+  </article>
+  {% endfor %}
 
-            <!-- Answer Section -->
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-                <h3 style="font-size: 18px; font-weight: 600;">Answer</h3>
-            </div>
-            <div class="answer-content" style="margin-bottom: 40px;">
-                {% if error %}
-                <div id="streaming-answer" style="font-size: 18px; line-height: 1.7; color: #ff4132; white-space: pre-wrap;">{{ error }}</div>
-                {% else %}
-                <div id="streaming-answer" style="font-size: 18px; line-height: 1.7; color: var(--text-color); white-space: pre-wrap;">{{ answer or 'Thinking...' }}</div>
-                {% endif %}
-            </div>
+  <article class="turn" id="current">
+    <h1 class="turn-q">{{ question }}</h1>
+    {{ rail(sources, live=(job_id != "")) }}
+    {% if job_id %}
+    <div class="progress" id="progress" role="status"><span class="pulse"></span><span id="progress-text">Starting…</span></div>
+    {% endif %}
+    {% if error %}
+    <div class="answer"><p class="error">{{ error }}</p></div>
+    {% elif job_id %}
+    <div class="answer" id="answer" aria-live="polite"><span class="cursor"></span></div>
+    {% else %}
+    <div class="answer" data-md data-max="{{ sources|length }}"><script type="text/markdown">{{ (answer or '')|tojson }}</script></div>
+    {% endif %}
+    <div class="answer-foot" id="answer-foot" {% if job_id %}hidden{% endif %}>
+      <button type="button" onclick="copyAnswer(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy</button>
+      {% if export_index is defined %}<a href="/export/{{ export_index }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Export Markdown</a>{% endif %}
+      {% if tag == '[INCOGNITO]' %}<span>Incognito: not saved</span>{% endif %}
+      <span id="metrics-slot">{{ metrics_line(metrics) }}</span>
+    </div>
+    <div class="related" id="related" hidden><h3>Keep exploring</h3><div id="related-list"></div></div>
+  </article>
+</div>
 
-            <div id="related-section" style="margin-top: 40px; display: none;">
-                <h3 style="margin-bottom: 24px; font-size: 20px;">Related Questions</h3>
-                <div id="related-questions" style="display: flex; flex-direction: column; gap: 8px;"></div>
-            </div>
+{% if session_id %}
+<div class="dock">
+  {{ composer(placeholder="Ask a follow-up", session_id=session_id, focus_modes=focus_modes, show_focus=False, focus=focus_mode) }}
+</div>
+{% endif %}
+{% endblock %}
 
-            <div class="glass-card" style="margin-top: 60px; background: var(--input-bg); padding: 12px;">
-                <form action="/ask" method="post">
-                    <input type="hidden" name="mode" value="{{ mode or 'industry_standard' }}">
-                    <input type="hidden" name="focus_mode" value="{{ focus_mode or 'All' }}">
-                    <input type="hidden" name="conversation_history" id="conversation-history-field" value="{{ conversation_history or '' }}">
-                    <div style="display: flex; gap: 12px; align-items: center;">
-                        <textarea name="question" placeholder="Ask a follow-up..." style="flex: 1; background: none; border: none; color: #fff; padding: 8px; outline: none; font-size: 16px; resize: none;" rows="1" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
-                        <button type="submit" class="submit-btn">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </main>
+{% block scripts %}
+<script>
+(function () {
+  function render(el, md) {
+    var max = +(el.getAttribute("data-max") || 0);
+    el.innerHTML = LP.markdown(md, max || 0);
+  }
+  document.querySelectorAll(".answer[data-md]").forEach(function (el) {
+    var s = el.querySelector("script[type='text/markdown']");
+    render(el, s ? JSON.parse(s.textContent) : "");
+  });
 
-    <style>
-        .spinner {
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(255,255,255,0.1);
-            border-top-color: var(--accent-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+  // Link citations to their margin notes, both directions.
+  function wire(turn) {
+    turn.addEventListener("mouseover", function (e) {
+      var t = e.target.closest(".cite, .src"); if (!t) return;
+      var n = t.getAttribute("data-n");
+      turn.querySelectorAll('[data-n="' + n + '"]').forEach(function (x) { x.classList.add("lit"); });
+    });
+    turn.addEventListener("mouseout", function (e) {
+      var t = e.target.closest(".cite, .src"); if (!t) return;
+      turn.querySelectorAll(".lit").forEach(function (x) { x.classList.remove("lit"); });
+    });
+    turn.addEventListener("click", function (e) {
+      var c = e.target.closest(".cite"); if (!c) return;
+      var src = turn.querySelector('.src[data-n="' + c.getAttribute("data-n") + '"]');
+      if (src) { e.preventDefault(); src.scrollIntoView({ block: "nearest", behavior: "smooth" }); src.focus({ preventScroll: true }); }
+    });
+  }
+  document.querySelectorAll(".turn").forEach(wire);
 
-        .citation-link {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.1);
-            color: var(--accent-color);
-            font-size: 11px;
-            font-weight: 700;
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-            text-decoration: none;
-            margin: 0 2px;
-            vertical-align: super;
-        }
-        .citation-link:hover { background: var(--accent-color); color: #000; }
+  window.copyAnswer = function (btn) {
+    var a = btn.closest(".turn").querySelector(".answer");
+    navigator.clipboard.writeText(a.innerText).then(function () { LP.toast("Answer copied"); });
+  };
 
-        .source-card:hover { border-color: var(--accent-color); }
-    </style>
+  var current = document.getElementById("current");
+  if (current && !{{ (job_id != "")|tojson }} && {{ (history_list|length > 0)|tojson }}) {
+    window.scrollTo(0, current.offsetTop - 20);
+  }
 
-    <script>
-        function escapeHTML(text) {
-            return text.replace(/[&<>"']/g, (ch) => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            }[ch]));
-        }
+  {% if job_id %}
+  var answerEl = document.getElementById("answer");
+  var progress = document.getElementById("progress"), ptext = document.getElementById("progress-text");
+  var rail = current.querySelector(".rail"), list = rail.querySelector(".rail-list"), count = rail.querySelector(".rail-count");
+  var nSources = 0, md = "", raf = 0, follow = true;
+  var es = new EventSource("/stream-answer?job={{ job_id }}");
+  window.addEventListener("scroll", function () { follow = window.innerHeight + window.scrollY >= document.body.scrollHeight - 160; }, { passive: true });
 
-        function processCitations(text) {
-            const escaped = escapeHTML(text);
-            return escaped.replace(/\[(\d+)\]/g, (match, number) => {
-                return `<a href="#source-${number}" class="citation-link">${number}</a>`;
-            });
-        }
+  function paint() {
+    raf = 0;
+    answerEl.innerHTML = LP.markdown(md, nSources) + '<span class="cursor"></span>';
+    if (follow) window.scrollTo(0, document.body.scrollHeight);
+  }
+  function sourceHTML(s) {
+    return '<li><a class="src" id="src-' + s.n + '" data-n="' + s.n + '" href="' + LP.esc(s.url) + '" target="_blank" rel="noopener noreferrer" title="' + LP.esc(s.snippet) + '">' +
+      '<span class="src-n">' + s.n + '</span><span class="src-domain"><span>' + LP.esc(s.domain) + '</span></span>' +
+      '<span class="src-title">' + LP.esc(s.title) + '</span><span class="src-bar"><i style="width:' + Math.round(s.relevance * 100) + '%"></i></span></a></li>';
+  }
+  function fmt(x) { return (Math.round(x * 10) / 10).toFixed(1); }
+  function finish() {
+    progress.classList.add("done");
+    var c = answerEl.querySelector(".cursor"); if (c) c.remove();
+    document.getElementById("answer-foot").hidden = false;
+  }
 
-        {% if context_session_id %}
-        const streamUrl = `/stream-answer?question={{ question|urlencode }}&session_id={{ context_session_id }}&mode={{ mode|urlencode }}&tag={{ tag|urlencode }}`;
-        const eventSource = new EventSource(streamUrl);
-        const answerDiv = document.getElementById('streaming-answer');
-        const progressDiv = document.getElementById('research-progress');
-        const stepText = document.getElementById('step-text');
-        const sourcesContainer = document.getElementById('sources-container');
-        const currentQuestion = {{ question|tojson }};
-        const startingHistory = {{ history_list|tojson }};
-
-        if ("{{ mode }}" === "pro") progressDiv.style.display = 'block';
-
-        let accumulatedAnswer = "";
-
-        eventSource.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-
-            if (data.status) {
-                progressDiv.style.display = 'block';
-                stepText.innerText = data.status;
-            }
-
-            if (data.update_sources) {
-                sourcesContainer.innerHTML = '';
-                data.update_sources.forEach((s, i) => {
-                    const idx = i + 1;
-                    let domain = '';
-                    try {
-                        domain = new URL(s.url).hostname;
-                    } catch {
-                        domain = (s.url || '').split('/')[2] || '';
-                    }
-                    const safeTitle = escapeHTML(s.title || 'Untitled source');
-                    const safeUrl = escapeHTML(s.url || '#');
-                    const safeDomain = escapeHTML(domain);
-                    sourcesContainer.innerHTML += `
-                        <div class="glass-card source-card" style="min-width: 200px; max-width: 200px; padding: 12px; flex-shrink: 0;" id="source-${idx}">
-                            <a href="${safeUrl}" class="source-title" target="_blank" style="font-size: 13px; font-weight: 600; display: block; height: 3.2em; overflow: hidden; margin-bottom: 8px;">${safeTitle}</a>
-                            <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--secondary-text);">
-                                <img src="https://www.google.com/s2/favicons?domain=${safeDomain}&sz=32" width="14" height="14" style="border-radius: 2px;">
-                                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${safeDomain}</span>
-                                <span style="margin-left: auto; font-weight: 700;">${idx}</span>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            if (data.chunk) {
-                progressDiv.style.display = 'none';
-                if (answerDiv.innerText === 'Thinking...') {
-                    answerDiv.innerText = '';
-                    answerDiv.style.whiteSpace = 'normal'; // Allow HTML rendering
-                }
-                accumulatedAnswer += data.chunk;
-                answerDiv.innerHTML = processCitations(accumulatedAnswer);
-            }
-
-            if (data.done) {
-                eventSource.close();
-                const historyField = document.getElementById('conversation-history-field');
-                if (historyField) {
-                    historyField.value = JSON.stringify([
-                        ...startingHistory,
-                        {question: currentQuestion, answer: accumulatedAnswer}
-                    ]);
-                }
-                if (data.related) {
-                    const relatedSection = document.getElementById('related-section');
-                    const relatedDiv = document.getElementById('related-questions');
-                    relatedSection.style.display = 'block';
-                    data.related.forEach(r => {
-                        const safeQuestion = escapeHTML(r);
-                        const form = document.createElement('form');
-                        form.action = '/ask';
-                        form.method = 'post';
-                        form.innerHTML = `
-                            <input type="hidden" name="mode" value="{{ mode }}">
-                            <input type="hidden" name="focus_mode" value="{{ focus_mode }}">
-                            <input type="hidden" name="question" value="${safeQuestion}">
-                            <button type="submit" style="background: none; border: none; color: var(--accent-color); text-align: left; padding: 8px 0; cursor: pointer; font-size: 15px; width: 100%;">
-                                ${safeQuestion} <span style="font-size: 12px; opacity: 0.5;">-&gt;</span>
-                            </button>
-                        `;
-                        relatedDiv.appendChild(form);
-                    });
-                }
-            }
+  es.onmessage = function (ev) {
+    var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
+    if (d.error) {
+      es.close(); finish(); ptext.textContent = "Stopped";
+      answerEl.innerHTML = (md ? LP.markdown(md, nSources) : "") + '<p class="error">' + LP.esc(d.error) + "</p>";
+      return;
+    }
+    if (d.status) ptext.textContent = d.status;
+    if (d.update_sources) {
+      nSources = d.update_sources.length;
+      list.innerHTML = d.update_sources.map(sourceHTML).join("");
+      count.textContent = nSources + " sources";
+    }
+    if (d.chunk) {
+      if (!md && !nSources) {
+        list.innerHTML = ""; count.textContent = "No web sources";
+        if (!rail.querySelector(".rail-empty")) rail.insertAdjacentHTML("beforeend", '<p class="rail-empty">Answered from the model\'s own knowledge and your notes.</p>');
+      }
+      md += d.chunk;
+      if (!raf) raf = requestAnimationFrame(paint);
+    }
+    if (d.done) {
+      es.close();
+      if (raf) cancelAnimationFrame(raf);
+      answerEl.innerHTML = LP.markdown(md, nSources);
+      finish();
+      var m = d.metrics || {}, g = m.generation || {}, t = m.timings || {};
+      ptext.textContent = nSources ? ("Answered from " + nSources + " sources") : "Answered";
+      if (g.tokens) {
+        document.getElementById("metrics-slot").innerHTML = '<span class="metrics">' +
+          (t.research_total != null ? "<span>research <b>" + fmt(t.research_total) + "s</b></span>" : "") +
+          "<span>first token <b>" + fmt(g.ttft) + "s</b></span><span><b>" + Math.round(g.tokens_per_sec) + "</b> tokens/s</span><span>" + LP.esc(m.model || "") + "</span></span>";
+      }
+      if (d.related && d.related.length) {
+        var rel = document.getElementById("related"), rl = document.getElementById("related-list");
+        rl.innerHTML = d.related.map(function (q) {
+          return '<button type="button" data-q="' + LP.esc(q) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>' + LP.esc(q) + "</button>";
+        }).join("");
+        rel.hidden = false;
+        rl.onclick = function (e) {
+          var b = e.target.closest("button[data-q]"); if (!b) return;
+          var f = document.querySelector(".dock form"); f.querySelector("textarea").value = b.getAttribute("data-q"); f.requestSubmit();
         };
-        {% endif %}
-    </script>
-</body>
-</html>
+      }
+      LP.loadSessions();
+    }
+  };
+  es.onerror = function () {
+    es.close(); finish();
+    if (!md) { ptext.textContent = "Connection lost"; answerEl.innerHTML = '<p class="error">The connection to the server dropped. Check that it is still running, then ask again.</p>'; }
+  };
+  {% endif %}
+})();
+</script>
+{% endblock %}

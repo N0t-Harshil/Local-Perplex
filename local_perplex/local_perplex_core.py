@@ -7,13 +7,13 @@ from typing import Iterable
 from urllib.parse import urlparse
 
 
-TOKEN_RE = re.compile(r"[a-zA-Z0-9]+(?:['-][a-zA-Z0-9]+)?")
+TOKEN_RE = re.compile(r"[a-z0-9]+(?:['-][a-z0-9]+)?")
 RankedSource = namedtuple("RankedSource", ["title", "url", "content", "relevance", "category"])
 
 
 def tokenize(text: str) -> list[str]:
     """Tokenize text in pure Python for ranking and graph extraction."""
-    return [match.group(0).lower() for match in TOKEN_RE.finditer(text or "")]
+    return TOKEN_RE.findall((text or "").lower())
 
 
 def calculate_score(query: str, content: str) -> float:
@@ -42,8 +42,10 @@ def _category_for_url(url: str) -> str:
         return "Technical"
     if "youtube.com" in host or "youtu.be" in host:
         return "Video"
-    if "reddit.com" in host:
+    if "reddit.com" in host or "news.ycombinator.com" in host:
         return "Community"
+    if "wikipedia.org" in host:
+        return "Reference"
     return "General"
 
 
@@ -54,28 +56,59 @@ def _source_get(source, key: str, default: str = ""):
 
 
 class ResearchEngine:
-    """Pure-Python source ranker with the old native module interface."""
+    """Ranks candidate sources against a query.
+
+    Scoring blends three signals:
+
+    * **BM25** over the candidate set (title counted twice so it carries weight),
+    * **query coverage**: the share of distinct query terms a source contains,
+    * a small **authority prior** for academic and government domains.
+
+    Duplicate URLs are collapsed. ``relevance`` is normalised to 0..1.
+    """
+
+    def __init__(self, k1: float = 1.2, b: float = 0.75):
+        self.k1, self.b = k1, b
 
     def rank_sources(self, query: str, sources: Iterable[dict]) -> list[RankedSource]:
-        ranked: list[RankedSource] = []
-        for source in sources:
-            title = _source_get(source, "title", "Unknown")
-            url = _source_get(source, "url", "")
-            content = _source_get(source, "content", "")
-            category = _source_get(source, "category", "") or _category_for_url(url)
-            score = calculate_score(query, f"{title}\n{content}")
-            if category == "Academic":
-                score *= 1.25
-            elif category == "Government":
-                score *= 1.15
-            ranked.append(
-                RankedSource(
-                    title=title,
-                    url=url,
-                    content=content,
-                    relevance=min(score, 1.0),
-                    category=category,
-                )
-            )
+        from .retrieval import BM25, analyze
 
+        items, seen = [], set()
+        for source in sources:
+            url = _source_get(source, "url", "")
+            key = _normalize_url(url)
+            if key and key in seen:
+                continue
+            seen.add(key)
+            title = _source_get(source, "title", "Unknown") or "Unknown"
+            content = _source_get(source, "content", "") or ""
+            category = _source_get(source, "category", "") or _category_for_url(url)
+            items.append((title, url, content, category))
+        if not items:
+            return []
+
+        q_terms = analyze(query)
+        docs = [analyze(f"{t} {t} {c[:20000]}") for t, _, c, _ in items]
+        bm25 = BM25(docs, k1=self.k1, b=self.b)
+        raw = [bm25.score(q_terms, i) for i in range(len(items))]
+        top = max(raw) or 1.0
+        q_set = set(q_terms)
+
+        ranked: list[RankedSource] = []
+        for (title, url, content, category), score, doc in zip(items, raw, docs):
+            coverage = (len(q_set & set(doc)) / len(q_set)) if q_set else 0.0
+            relevance = 0.65 * (score / top) + 0.35 * coverage
+            relevance *= _AUTHORITY.get(category, 1.0)
+            ranked.append(RankedSource(title=title, url=url, content=content,
+                                       relevance=round(min(relevance, 1.0), 4),
+                                       category=category))
         return sorted(ranked, key=lambda item: item.relevance, reverse=True)
+
+
+_AUTHORITY = {"Academic": 1.15, "Government": 1.1, "Reference": 1.05}
+
+
+def _normalize_url(url: str) -> str:
+    parsed = urlparse(url or "")
+    host = (parsed.netloc or "").lower().removeprefix("www.")
+    return f"{host}{parsed.path.rstrip('/')}" if host else (url or "")

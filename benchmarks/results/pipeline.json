@@ -1,0 +1,21 @@
+{
+  "machine": {
+    "python": "3.12.10",
+    "os": "Windows 11",
+    "cpu": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+    "cores": 8
+  },
+  "rank_12_pages_ms": 23.0,
+  "rank_10k_docs_ms": 5937.69,
+  "v1_rank_10k_docs_ms": 1155.11,
+  "passage_select_20k_chars_ms": 2.64,
+  "passage_finds_needle": true,
+  "vault_index_build_ms": 176.7,
+  "vault_chars": 1144126,
+  "vault_chunks": 1790,
+  "vault_query_ms": 2.36,
+  "graph_record_session_ms": 15.2,
+  "graph_nodes": 4238,
+  "graph_edges": 16400,
+  "graph_recall_ms": 17.9
+}

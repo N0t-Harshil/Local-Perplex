@@ -16,17 +16,19 @@ class HistoryManager:
         self.history_dir = Path(history_dir)
         self.history_dir.mkdir(parents=True, exist_ok=True)
 
-    def save_session(self, question: str, answer: str, sources: list, tag: str = "General"):
+    def save_session(self, question: str, answer: str, sources: list, tag: str = "General",
+                     metrics: dict | None = None):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_q = "".join([c if c.isalnum() else "_" for c in question[:30]])
-        filename = f"{timestamp}_{safe_q}.json"
+        filename = f"{timestamp}_{safe_q}_{os.urandom(2).hex()}.json"
 
         data = {
             "timestamp": timestamp,
             "question": question,
             "answer": answer,
             "sources": sources,
-            "tag": tag
+            "tag": tag,
+            "metrics": metrics or {},
         }
 
         with open(self.history_dir / filename, "w", encoding="utf-8") as f:
@@ -35,6 +37,9 @@ class HistoryManager:
     def get_all_sessions(self):
         sessions = []
         for file in sorted(self.history_dir.glob("*.json"), reverse=True):
-            with open(file, "r", encoding="utf-8") as f:
-                sessions.append(json.load(f))
+            try:
+                with open(file, "r", encoding="utf-8") as f:
+                    sessions.append(json.load(f))
+            except (OSError, json.JSONDecodeError):
+                continue
         return sessions

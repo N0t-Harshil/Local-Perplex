@@ -1,0 +1,33 @@
+{% macro composer(placeholder="Ask anything", session_id="", focus_modes=[], show_focus=True, autofocus=False, mode="industry_standard", focus="All") %}
+<form class="composer-form" action="/ask" method="post" enctype="multipart/form-data">
+  {% if session_id %}<input type="hidden" name="session_id" value="{{ session_id }}">{% endif %}
+  <div class="composer">
+    <div class="image-preview"><img alt="Attached image"><span class="muted"></span><button type="button" aria-label="Remove image">Remove</button></div>
+    <label class="sr-only" for="q-{{ session_id or 'new' }}">Your question</label>
+    <textarea id="q-{{ session_id or 'new' }}" name="question" rows="1" placeholder="{{ placeholder }}" required {% if autofocus %}autofocus{% endif %}></textarea>
+    <div class="composer-bar">
+      <label class="chip {% if mode == 'pro' %}on{% endif %}" title="Plans three searches, runs them in parallel and writes a longer, structured report">
+        <input type="checkbox" name="mode" value="pro" {% if mode == 'pro' %}checked{% endif %}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19h16M6 15l4-6 4 3 4-7"/></svg><span class="chip-label">Deep research</span>
+      </label>
+      <label class="chip" title="Attach an image (needs a vision model)">
+        <input type="file" name="image" accept="image/*">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m21 12-8.5 8.5a5 5 0 0 1-7-7L14 5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4L15.5 8"/></svg><span class="chip-label">Image</span>
+      </label>
+      <label class="chip" title="Incognito questions aren't saved to your library or knowledge graph">
+        <input type="checkbox" name="privacy_mode" value="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><path d="M4 4l16 16"/></svg><span class="chip-label">Incognito</span>
+      </label>
+      <span class="spacer"></span>
+      <button class="send" type="submit" aria-label="Ask" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+    </div>
+  </div>
+  {% if show_focus %}
+  <div class="focus-row" role="radiogroup" aria-label="Search focus">
+    {% for f in focus_modes %}
+    <label><input type="radio" name="focus_mode" value="{{ f }}" {% if f == focus %}checked{% endif %}>{{ {'All':'Whole web','Computational':'Math & data','Writing':'No search'}.get(f, f) }}</label>
+    {% endfor %}
+  </div>
+  {% else %}<input type="hidden" name="focus_mode" value="{{ focus }}">{% endif %}
+</form>
+{% endmacro %}

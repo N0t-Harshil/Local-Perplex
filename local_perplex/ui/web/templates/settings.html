@@ -1,80 +1,148 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - Local Perplex</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body data-theme="dark">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <span class="nothing-dot"></span>
-            local perplex
+{% extends "base.html" %}
+{% block title %}Models & search · Local Perplex{% endblock %}
+{% block main %}
+<div class="page">
+  <h1 class="page-title">Models & search</h1>
+  <p class="page-lede">Choose who writes your answers and where the web results come from. Local runtimes keep everything on this device; hosted APIs are faster on modest hardware but see your questions.</p>
+
+  <div class="settings-grid">
+    <div class="prov-list" role="radiogroup" aria-label="Model provider">
+      <h3>On this device</h3>
+      {% for p in providers if p.local %}
+      <label class="prov"><input type="radio" name="provider" value="{{ p.id }}" {% if p.id == status.provider %}checked{% endif %}><span class="name">{{ p.label }}</span>{% if p.id == status.provider and status.llm_online %}<span class="dot on" title="Connected"></span>{% endif %}</label>
+      {% endfor %}
+      <h3>Hosted APIs</h3>
+      {% for p in providers if not p.local %}
+      <label class="prov"><input type="radio" name="provider" value="{{ p.id }}" {% if p.id == status.provider %}checked{% endif %}><span class="name">{{ p.label }}</span>{% if p.has_key %}<span class="badge key">key saved</span>{% endif %}</label>
+      {% endfor %}
+    </div>
+
+    <div>
+      <form class="panel" id="llm-form" onsubmit="return save(event)">
+        <div class="row" style="justify-content:space-between;margin-bottom:16px">
+          <h2 style="margin:0;font-size:19px" id="p-label"></h2>
+          <span class="badge" id="p-where"></span>
         </div>
-        <nav class="sidebar-nav">
-            <a href="/" class="nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                Search
-            </a>
-            <a href="/vault" class="nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                Vault
-            </a>
-            <a href="/graph" class="nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="18" cy="6" r="3"></circle><circle cx="12" cy="18" r="3"></circle><path d="M8.5 7.5 11 15"></path><path d="m15.5 7.5-2.5 7.5"></path><path d="M9 6h6"></path></svg>
-                GraphMap
-            </a>
-            <a href="/settings" class="nav-item active">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                Settings
-            </a>
-        </nav>
-    </aside>
+        <p class="muted" id="p-notes" style="margin:-6px 0 18px;font-size:13.5px"></p>
 
-    <!-- Main Content -->
-    <main class="main-content" style="justify-content: flex-start; align-items: stretch;">
-        <div style="max-width: 800px; margin: 0 auto; width: 100%;">
-            <header style="margin-bottom: 40px;">
-                <h1 style="font-size: 32px; letter-spacing: -0.04em; margin-bottom: 8px;">Settings</h1>
-                <p style="color: var(--secondary-text);">Configure your local research preferences.</p>
-            </header>
-
-            <div class="glass-card" style="margin-bottom: 32px;">
-                <h3 style="margin-top: 0; margin-bottom: 24px; font-size: 18px;">Model Configuration</h3>
-                <form action="/settings" method="post">
-                    <div style="margin-bottom: 24px;">
-                        <label style="display: block; margin-bottom: 8px; font-size: 14px; color: var(--secondary-text);">Active Ollama Model</label>
-                        <input type="text" name="model" value="{{ model }}" style="width: 100%; box-sizing: border-box; background: var(--input-bg); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 16px; outline: none;">
-                        <p style="font-size: 12px; color: #444; margin-top: 8px;">We recommend using <strong>llama3.2-vision</strong> for full lens support.</p>
-                    </div>
-                    <button type="submit" class="pill-btn active" style="width: 100%;">Save Changes</button>
-                </form>
-            </div>
-
-            <div class="glass-card">
-                <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 18px;">System Stats</h3>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color);">
-                        <span style="font-size: 14px; color: var(--secondary-text);">Core Engine</span>
-                        <span style="font-size: 14px; color: var(--text-color); font-weight: 600;">Python Ranking Core</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px;">
-                        <span style="font-size: 14px; color: var(--secondary-text);">Synthesis</span>
-                        <span style="font-size: 14px; color: var(--text-color); font-weight: 600;">Ollama (Local Inference)</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-top: 1px solid var(--border-color);">
-                        <span style="font-size: 14px; color: var(--secondary-text);">GraphMap</span>
-                        <span style="font-size: 14px; color: var(--text-color); font-weight: 600;">{{ graph_stats.nodes if graph_stats else 0 }} nodes / {{ graph_stats.edges if graph_stats else 0 }} edges</span>
-                    </div>
-                </div>
-            </div>
-
-            <div style="margin-top: 40px; text-align: center;">
-                <a href="/privacy" style="color: var(--secondary-text); text-decoration: none; font-size: 13px; font-weight: 500;">Privacy & Security Audit →</a>
-            </div>
+        <div class="field" id="f-url">
+          <label for="base_url">Server URL</label>
+          <input class="input" id="base_url" name="base_url" placeholder="http://localhost:1234/v1" autocomplete="off">
         </div>
-    </main>
-</body>
-</html>
+        <div class="field" id="f-key">
+          <label for="api_key">API key</label>
+          <input class="input" id="api_key" name="api_key" type="password" autocomplete="off">
+          <span class="hint" id="key-hint"></span>
+        </div>
+        <div class="field">
+          <label for="model">Model</label>
+          <input class="input" id="model" name="model" list="model-list" autocomplete="off" value="{{ model }}">
+          <datalist id="model-list"></datalist>
+          <span class="hint" id="model-hint">Type a model name or load the list from the provider.</span>
+        </div>
+        <div class="field">
+          <label for="temperature">Creativity <span class="muted" id="temp-val">{{ settings.temperature }}</span></label>
+          <input id="temperature" name="temperature" type="range" min="0" max="1.2" step="0.1" value="{{ settings.temperature }}" oninput="document.getElementById('temp-val').textContent=this.value" style="accent-color:var(--amber)">
+          <span class="hint">Lower keeps answers close to the sources. 0.2 to 0.4 suits research.</span>
+        </div>
+
+        <h2 class="section" style="margin-top:28px">Web search</h2>
+        <div class="field">
+          <label for="search_provider">Search with</label>
+          <select class="input" id="search_provider" name="search_provider" onchange="showSearch()">
+            {% for b in search_backends %}<option value="{{ b.id }}" {% if b.id == status.search_backend %}selected{% endif %}>{{ b.label }}</option>{% endfor %}
+          </select>
+          <span class="hint" id="s-notes"></span>
+        </div>
+        <div class="field" id="s-url"><label for="search_base_url">SearXNG URL</label><input class="input" id="search_base_url" name="search_base_url" placeholder="http://localhost:8888"></div>
+        <div class="field" id="s-key"><label for="search_api_key">Search API key</label><input class="input" id="search_api_key" name="search_api_key" type="password" autocomplete="off"><span class="hint" id="s-key-hint"></span></div>
+
+        <div class="row" style="margin-top:8px;flex-wrap:wrap">
+          <button class="btn primary" type="submit" id="save-btn">Save and connect</button>
+          <button class="btn" type="button" onclick="loadModels(true)">Test connection</button>
+          <span class="test-result" id="test-result" role="status"></span>
+        </div>
+      </form>
+
+      <div class="panel">
+        <h2 style="margin:0 0 6px;font-size:16px">Where settings live</h2>
+        <p class="muted" style="margin:0;font-size:13.5px">Saved to <code>~/.local_perplex/config.json</code> on this device. Keys can also come from environment variables such as <code>OPENAI_API_KEY</code>; the app only ever shows the last four characters.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+var PROVIDERS = {{ providers|tojson }}, SEARCH = {{ search_backends|tojson }};
+var CURRENT = {{ status.provider|tojson }}, CURRENT_MODEL = {{ model|tojson }};
+function byId(id) { return document.getElementById(id); }
+function sel() { return document.querySelector("input[name=provider]:checked").value; }
+function spec(id) { return PROVIDERS.filter(function (p) { return p.id === id; })[0]; }
+
+function showProvider() {
+  var p = spec(sel());
+  byId("p-label").textContent = p.label;
+  byId("p-where").textContent = p.local ? "Runs on this device" : "Hosted, questions leave this device";
+  byId("p-where").className = "badge" + (p.local ? " local" : "");
+  byId("p-notes").innerHTML = LP.esc(p.notes || "") + (p.docs ? ' <a href="' + LP.esc(p.docs) + '" target="_blank" rel="noopener noreferrer">' + (p.local ? "Download" : "Get a key") + "</a>" : "");
+  byId("f-url").hidden = !p.editable_url;
+  byId("base_url").value = p.base_url || "";
+  byId("f-key").hidden = !p.needs_key && p.id !== "custom";
+  byId("api_key").value = "";
+  byId("api_key").placeholder = p.has_key ? "Saved (" + p.key_hint + "). Leave empty to keep it." : (p.env_key ? "Paste a key, or set " + p.env_key : "Optional");
+  byId("key-hint").textContent = p.env_key ? "Environment variable: " + p.env_key : "";
+  if (p.id !== CURRENT) byId("model").value = p.default_model || "";
+  else byId("model").value = CURRENT_MODEL;
+  byId("model-list").innerHTML = ""; byId("test-result").textContent = "";
+  if (p.local || p.has_key) loadModels(false);
+}
+
+function showSearch() {
+  var b = SEARCH.filter(function (s) { return s.id === byId("search_provider").value; })[0];
+  byId("s-notes").textContent = b.notes || "";
+  byId("s-url").hidden = !b.needs_url; byId("search_base_url").value = b.base_url || "";
+  byId("s-key").hidden = !b.needs_key;
+  byId("search_api_key").placeholder = b.has_key ? "Saved (" + b.key_hint + "). Leave empty to keep it." : "Paste a key, or set " + (b.env_key || "");
+}
+
+function loadModels(verbose) {
+  var p = spec(sel()), out = byId("test-result");
+  if (verbose) { out.className = "test-result"; out.textContent = "Connecting…"; }
+  fetch("/api/providers/models", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ provider: p.id, api_key: byId("api_key").value, base_url: byId("base_url").value }) })
+    .then(function (r) { return r.json(); }).then(function (d) {
+      if (d.ok && d.models.length) {
+        byId("model-list").innerHTML = d.models.map(function (m) { return '<option value="' + LP.esc(m) + '">'; }).join("");
+        byId("model-hint").textContent = d.models.length + " models available. Start typing to pick one.";
+        if (!byId("model").value) byId("model").value = d.models.indexOf(p.default_model) >= 0 ? p.default_model : d.models[0];
+        if (verbose) { out.className = "test-result ok"; out.textContent = "Connected. " + d.models.length + " models found."; }
+      } else if (verbose) {
+        out.className = "test-result bad";
+        out.textContent = d.error ? "Couldn't connect: " + d.error : "Connected, but the provider didn't list any models.";
+      }
+    }).catch(function () { if (verbose) { out.className = "test-result bad"; out.textContent = "Couldn't reach the Local Perplex server."; } });
+}
+
+function save(e) {
+  e.preventDefault();
+  var btn = byId("save-btn"); btn.disabled = true; btn.textContent = "Connecting…";
+  fetch("/api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+    provider: sel(), model: byId("model").value, api_key: byId("api_key").value, base_url: byId("base_url").value,
+    search_provider: byId("search_provider").value, search_api_key: byId("search_api_key").value,
+    search_base_url: byId("search_base_url").value, temperature: +byId("temperature").value }) })
+    .then(function (r) { return r.json().then(function (d) { return [r.ok, d]; }); })
+    .then(function (res) {
+      var ok = res[0], d = res[1]; btn.disabled = false; btn.textContent = "Save and connect";
+      if (!ok) { byId("test-result").className = "test-result bad"; byId("test-result").textContent = d.detail || "Couldn't save."; return; }
+      var st = d.status;
+      LP.toast(st.llm_online ? "Saved. Using " + st.current_model + " on " + st.provider_label : "Saved, but " + st.provider_label + " isn't reachable yet");
+      setTimeout(function () { location.reload(); }, 900);
+    });
+  return false;
+}
+
+document.querySelectorAll("input[name=provider]").forEach(function (r) { r.addEventListener("change", showProvider); });
+showProvider(); showSearch();
+</script>
+{% endblock %}

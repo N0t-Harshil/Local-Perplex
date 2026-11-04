@@ -1,70 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Audit - Local Perplex</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body data-theme="dark">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <span class="nothing-dot"></span>
-            local perplex
-        </div>
-        <nav class="sidebar-nav">
-            <a href="/" class="nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                Search
-            </a>
-            <a href="/vault" class="nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                Vault
-            </a>
-            <a href="/settings" class="nav-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                Settings
-            </a>
-        </nav>
-    </aside>
+{% extends "base.html" %}
+{% block title %}Privacy · Local Perplex{% endblock %}
+{% block main %}
+<div class="page page-narrow">
+  <h1 class="page-title">Where your data goes</h1>
+  <p class="page-lede">This page reflects your current settings, so it changes when you switch models or search providers.</p>
 
-    <!-- Main Content -->
-    <main class="main-content" style="justify-content: flex-start; align-items: stretch;">
-        <div style="max-width: 800px; margin: 0 auto; width: 100%;">
-            <header style="margin-bottom: 40px;">
-                <h1 style="font-size: 32px; letter-spacing: -0.04em; margin-bottom: 8px;">Privacy & Security Audit</h1>
-                <p style="color: var(--secondary-text);">Our commitment to your digital sovereignty.</p>
-            </header>
-
-            <div class="glass-card" style="border-color: #28a745; margin-bottom: 32px;">
-                <h3 style="margin-top: 0; margin-bottom: 24px; font-size: 18px;">Connection Status</h3>
-                <ul style="list-style: none; padding: 0;">
-                    <li style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 10px; height: 10px; background: #28a745; border-radius: 50%;"></div>
-                        <span style="font-size: 14px;">Ollama (Local LLM): <strong style="color: #28a745;">SECURE</strong></span>
-                    </li>
-                    <li style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 10px; height: 10px; background: #28a745; border-radius: 50%;"></div>
-                        <span style="font-size: 14px;">Data Persistence: <strong style="color: #28a745;">LOCAL STORAGE ONLY</strong></span>
-                    </li>
-                    <li style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 10px; height: 10px; background: #28a745; border-radius: 50%;"></div>
-                        <span style="font-size: 14px;">External AI Calls: <strong style="color: #28a745;">ZERO LEAKAGE</strong></span>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="glass-card">
-                <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 18px;">The Privacy Manifesto</h3>
-                <p style="font-size: 15px; line-height: 1.7; color: var(--secondary-text);">
-                    Local Perplex was built with a single mission: to provide world-class research capabilities without sacrificing human privacy. Unlike cloud-based search engines, we do not profile your interests, sell your search history, or use your data to train proprietary models. Your research is yours alone.
-                </p>
-                <p style="font-size: 15px; line-height: 1.7; color: var(--secondary-text); margin-top: 16px;">
-                    Every query, every analyzed document, and every generated response stays within your hardware. This is not just a tool; it is a fortress for your curiosity.
-                </p>
-            </div>
-        </div>
-    </main>
-</body>
-</html>
+  <div class="panel">
+    <ul class="flow">
+      <li><span class="dot {% if status.local %}on{% endif %}"></span><div>
+        <b>Your questions and answers</b>
+        {% if status.local %}<span>Written by {{ current_model }} through {{ status.provider_label }} on this device. Nothing is sent to an AI company.</span>
+        {% else %}<span>Sent to {{ status.provider_label }} to generate the answer, together with the retrieved passages. Their data policy applies. Switch to a local runtime in <a href="/settings">Models & search</a> to keep this on your device.</span>{% endif %}
+      </div></li>
+      <li><span class="dot {% if status.search_backend in ('searxng',) %}on{% endif %}"></span><div>
+        <b>Web search</b>
+        <span>A short search query, not your full conversation, goes to {{ search_label }}. Result pages are then fetched directly by this device with TLS verification on. Questions answered from the model's own knowledge make no web requests at all.</span>
+      </div></li>
+      <li><span class="dot on"></span><div>
+        <b>Your documents</b>
+        <span>Parsed and indexed on this device. Only the few passages relevant to a question are included in the prompt.</span>
+      </div></li>
+      <li><span class="dot on"></span><div>
+        <b>Library, conversations and knowledge graph</b>
+        <span>Stored as JSON files and a SQLite database in the project folder. No account, no telemetry, no analytics, and no third-party scripts or fonts in this interface.</span>
+      </div></li>
+      <li><span class="dot on"></span><div>
+        <b>Incognito questions</b>
+        <span>Not written to the library, the sidebar or the knowledge graph.</span>
+      </div></li>
+      <li><span class="dot on"></span><div>
+        <b>The server</b>
+        <span>Listens on 127.0.0.1 by default, and rejects requests from other websites so a page in another tab can't change your settings or read your keys.</span>
+      </div></li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

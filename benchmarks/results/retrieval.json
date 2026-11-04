@@ -1,0 +1,22 @@
+{
+  "dataset": "BEIR SciFact (test)",
+  "documents": 5183,
+  "queries": 300,
+  "v1_term_frequency": {
+    "ndcg@10": 0.0384,
+    "recall@10": 0.0583,
+    "recall@100": 0.1775,
+    "mrr@10": 0.0322,
+    "ms_per_query": 322.6
+  },
+  "v2_bm25": {
+    "ndcg@10": 0.654,
+    "recall@10": 0.773,
+    "recall@100": 0.882,
+    "mrr@10": 0.6201,
+    "ms_per_query": 9.5
+  },
+  "v2_index_build_s": 0.56,
+  "tokens_indexed": 724287,
+  "ndcg_relative_gain_pct": 1603.1
+}

@@ -1,0 +1,26 @@
+# docker compose up -d   ->  http://localhost:8000
+# Pull a model once:  docker compose exec ollama ollama pull llama3.2:3b
+services:
+  ollama:
+    image: ollama/ollama:latest
+    volumes: [ollama:/root/.ollama]
+    restart: unless-stopped
+    # GPU: uncomment on a machine with the NVIDIA container toolkit
+    # deploy: { resources: { reservations: { devices: [{ driver: nvidia, count: all, capabilities: [gpu] }] } } }
+
+  app:
+    build: .
+    ports: ["127.0.0.1:8000:8000"]
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      LOCAL_PERPLEX_MODEL: llama3.2:3b
+      # Optional: use a hosted provider instead, e.g.
+      # LOCAL_PERPLEX_PROVIDER: groq
+      # GROQ_API_KEY: ${GROQ_API_KEY}
+    volumes: [data:/data]
+    depends_on: [ollama]
+    restart: unless-stopped
+
+volumes:
+  ollama:
+  data:

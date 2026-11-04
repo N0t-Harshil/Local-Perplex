@@ -13,3 +13,4 @@ pypdf
 python-docx
 openpyxl
 cachetools
+rich

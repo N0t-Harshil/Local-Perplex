@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Library · Local Perplex{% endblock %}
+{% block main %}
+<div class="page page-narrow">
+  <h1 class="page-title">Library</h1>
+  <p class="page-lede">Every answer you've researched, with its sources. Stored as JSON files on this device; incognito questions never appear here.</p>
+  {% if history %}
+  <input class="input search-filter" type="search" placeholder="Filter {{ history|length }} answers" oninput="filterHist(this.value)" aria-label="Filter library">
+  <ol class="hist" id="hist">
+    {% for s in history %}
+    <li data-text="{{ (s.question ~ ' ' ~ s.answer[:400])|lower }}">
+      <a class="q" href="/history/{{ loop.index0 }}">{{ s.question }}</a>
+      <span class="when">{{ s.timestamp[:4] }}-{{ s.timestamp[4:6] }}-{{ s.timestamp[6:8] }}</span>
+      <span class="snip">{{ s.answer[:260] | replace('*','') | replace('#','') }}</span>
+      <span class="acts"><span class="muted">{% if s.sources %}{{ s.sources|length }} sources{% else %}model knowledge{% endif %}</span><a href="/export/{{ loop.index0 }}">Export</a></span>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <div class="panel"><p style="margin:0">Nothing here yet. <a href="/">Ask your first question</a> and the answer will be saved here.</p></div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function filterHist(q) {
+  q = q.toLowerCase().trim();
+  document.querySelectorAll("#hist li").forEach(function (li) { li.hidden = q && li.dataset.text.indexOf(q) < 0; });
+}
+</script>
+{% endblock %}
